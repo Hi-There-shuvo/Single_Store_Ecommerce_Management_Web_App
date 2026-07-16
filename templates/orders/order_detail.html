@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.id }} - {{ site_settings.store_name|default:"SoloStore" }}{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div style="text-align:center; padding:2rem 0; border-bottom:1px solid var(--border); margin-bottom:2rem">
+    {% if order.paid %}
+    <div style="font-size:4rem; margin-bottom:1rem; color:var(--accent)"><i class="fas fa-check-circle"></i></div>
+    <h1>Payment Confirmed!</h1>
+    <p style="color:var(--text-muted); margin-top:0.5rem">Order #{{ order.id }} has been paid successfully.</p>
+    {% elif order.payment_method == 'cod' %}
+    <div style="font-size:4rem; margin-bottom:1rem; color:var(--accent)"><i class="fas fa-check-circle"></i></div>
+    <h1>Order Confirmed!</h1>
+    <p style="color:var(--text-muted); margin-top:0.5rem">Order #{{ order.id }} placed — pay on delivery.</p>
+    {% else %}
+    <div style="font-size:4rem; margin-bottom:1rem; color:#f59e0b"><i class="fas fa-clock"></i></div>
+    <h1>Payment Pending</h1>
+    <p style="color:var(--text-muted); margin-top:0.5rem">Order #{{ order.id }} is awaiting payment.</p>
+    {% endif %}
+  </div>
+
+  <!-- Payment & Status Badges -->
+  <div class="order-badges" style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem">
+    <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+    {% if order.payment_method == 'online' %}
+      <span class="badge-stripe"><i class="fab fa-stripe"></i> Stripe</span>
+      {% if order.paid %}
+        <span class="badge-paid"><i class="fas fa-check"></i> Paid</span>
+      {% else %}
+        <span class="badge-unpaid"><i class="fas fa-exclamation-circle"></i> Unpaid</span>
+      {% endif %}
+    {% else %}
+      <span class="badge-cod"><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span>
+    {% endif %}
+  </div>
+
+  <div class="order-card">
+    <div class="order-header">
+      <div>
+        <strong>Order #{{ order.id }}</strong>
+        <div style="font-size:0.85rem; color:var(--text-muted)">Placed {{ order.created_at|date:"M d, Y H:i" }}</div>
+      </div>
+      <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+    </div>
+    <table class="cart-table">
+      <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for item in order.items.all %}
+        <tr>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>&#2547;{{ item.price }}</td>
+          <td style="color:var(--accent); font-weight:600">&#2547;{{ item.get_total_price }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="text-align:right; margin-top:1rem; font-size:1.2rem; font-weight:700; color:var(--accent)">
+      Total: &#2547;{{ order.total_price }}
+    </div>
+  </div>
+
+  <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap">
+    {% if order.payment_method == 'online' and not order.paid and order.status != 'cancelled' %}
+    <a href="{% url 'orders:retry_payment' order.id %}" class="btn btn-stripe">
+      <i class="fab fa-stripe"></i> Retry Payment
+    </a>
+    {% endif %}
+    <a href="{% url 'orders:order_list' %}" class="btn btn-outline"><i class="fas fa-list"></i> My Orders</a>
+    <a href="{% url 'store:home' %}" class="btn btn-primary"><i class="fas fa-home"></i> Continue Shopping</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .badge-stripe {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    padding:0.35rem 0.85rem; border-radius:20px; font-size:0.8rem; font-weight:600;
+    background:linear-gradient(135deg, #635BFF, #7A73FF); color:#fff;
+  }
+  .badge-paid {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    padding:0.35rem 0.85rem; border-radius:20px; font-size:0.8rem; font-weight:600;
+    background:linear-gradient(135deg, #10b981, #34d399); color:#fff;
+  }
+  .badge-unpaid {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    padding:0.35rem 0.85rem; border-radius:20px; font-size:0.8rem; font-weight:600;
+    background:linear-gradient(135deg, #f59e0b, #fbbf24); color:#1a1a2e;
+  }
+  .badge-cod {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    padding:0.35rem 0.85rem; border-radius:20px; font-size:0.8rem; font-weight:600;
+    background:linear-gradient(135deg, #6366f1, #818cf8); color:#fff;
+  }
+  .btn-stripe {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    padding:0.7rem 1.5rem; border-radius:var(--radius); font-weight:600;
+    background:linear-gradient(135deg, #635BFF, #7A73FF); color:#fff;
+    text-decoration:none; transition:var(--transition); border:none; cursor:pointer;
+  }
+  .btn-stripe:hover { transform:translateY(-2px); box-shadow:0 4px 15px rgba(99,91,255,0.4); }
+</style>
+{% endblock %}

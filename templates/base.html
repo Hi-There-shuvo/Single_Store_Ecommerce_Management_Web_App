@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_settings.store_name|default:"SoloStore" }} - {{ site_settings.tagline|default:"Your One-Stop Store" }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Shop the best products at {{ site_settings.store_name|default:'SoloStore' }} - premium quality, fast delivery.{% endblock %}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Base CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.3">
+    {% if site_settings.favicon %}
+    <link rel="icon" href="{{ site_settings.favicon.url }}" type="image/png">
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="{% url 'store:home' %}" class="nav-logo">
+            {% if site_settings.logo %}
+            <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.store_name|default:'SoloStore' }}" class="nav-logo-img">
+            {% else %}
+            <i class="fas fa-store"></i> {{ site_settings.store_name|default:"SoloStore" }}
+            {% endif %}
+        </a>
+        <div class="nav-search">
+            <form action="{% url 'store:product_list' %}" method="GET">
+                <input type="text" name="q" placeholder="Search products..." value="{{ request.GET.q }}">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'store:product_list' %}" class="nav-link">
+                <i class="fas fa-th-large"></i> Products
+            </a>
+            <a href="{% url 'store:product_list' %}?sale=1" class="nav-link sale-link">
+                <i class="fas fa-bolt"></i> Sales
+            </a>
+            {% if not user.is_staff %}
+            <a href="{% url 'cart:cart_detail' %}" class="nav-link cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                Cart
+                {% if not cart_items_count %}
+                <span class="cart-badge" id="cart-badge" style="display: none;">
+                    {{ cart_items_count|default:"0" }}
+                </span>
+                {% else %}
+                <span class="cart-badge" id="cart-badge">
+                    {{ cart_items_count|default:"0" }}
+                </span>
+                {% endif %}
+            </a>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <div class="nav-dropdown">
+                <a href="#" class="nav-link dropdown-toggle" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                    {% if user.profile.image %}
+                        <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <i class="fas fa-user-circle"></i>
+                    {% endif %}
+                    {{ user.username }}
+                </a>
+                <div class="dropdown-menu">
+                    <a href="{% url 'accounts:profile' %}"><i class="fas fa-user"></i> Profile</a>
+                    <a href="{% url 'orders:order_list' %}"><i class="fas fa-box"></i> My Orders</a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'dashboard:home' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:logout' %}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{% url 'accounts:login' %}" class="nav-link btn-login">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="{% url 'accounts:register' %}" class="nav-link btn-register">
+                <i class="fas fa-user-plus"></i> Register
+            </a>
+            {% endif %}
+        </div>
+        <button class="hamburger" id="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
+<!-- Messages -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+        {{ message }}
+        <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<main class="main-content">
+    {% block content %}
+    {% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>
+                    {% if site_settings.logo %}
+                    <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.store_name }}" style="max-height:30px; display:inline-block; vertical-align:middle; margin-right:8px;">
+                    {% else %}
+                    <i class="fas fa-store"></i>
+                    {% endif %}
+                    {{ site_settings.store_name|default:"SoloStore" }}
+                </h3>
+                <p>{{ site_settings.footer_text|default:"Your trusted one-stop shop for quality products at amazing prices." }}</p>
+                <div class="social-links">
+                    {% if site_settings.facebook_url %}
+                    <a href="{{ site_settings.facebook_url }}" target="_blank"><i class="fab fa-facebook"></i></a>
+                    {% endif %}
+                    {% if site_settings.instagram_url %}
+                    <a href="{{ site_settings.instagram_url }}" target="_blank"><i class="fab fa-instagram"></i></a>
+                    {% endif %}
+                    {% if site_settings.twitter_url %}
+                    <a href="{{ site_settings.twitter_url }}" target="_blank"><i class="fab fa-twitter"></i></a>
+                    {% endif %}
+                    {% if not site_settings.facebook_url and not site_settings.instagram_url and not site_settings.twitter_url %}
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'store:home' %}">Home</a></li>
+                    <li><a href="{% url 'store:product_list' %}">Products</a></li>
+                    <li><a href="{% url 'store:product_list' %}?sale=1">Flash Sales</a></li>
+                    <li><a href="{% url 'cart:cart_detail' %}">Cart</a></li>
+                    <li><a href="{% url 'accounts:register' %}">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact</h4>
+                <p><i class="fas fa-map-marker-alt"></i> {{ site_settings.address|default:"Dhaka, Bangladesh" }}</p>
+                <p><i class="fas fa-envelope"></i> {{ site_settings.email|default:"info@SoloStore.com" }}</p>
+                <p><i class="fas fa-phone"></i> {{ site_settings.phone|default:"+880 1234-567890" }}</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>{{ site_settings.copyright_text|default:"&copy; 2026 SoloStore. All rights reserved." }}</p>
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script>
+    document.body.addEventListener('showMessage', function(evt){
+        const container = document.querySelector('.messages-container') || document.createElement('div');
+        if(!container.classList.contains('messages-container')) {
+            container.className = 'messages-container';
+            document.body.appendChild(container);
+        }
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success';
+        alertDiv.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            ${evt.detail.value}
+            <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        container.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateX(20px)';
+            alertDiv.style.transition = 'all 0.4s ease';
+            setTimeout(() => alertDiv.remove(), 400);
+        }, 3000);
+    })
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

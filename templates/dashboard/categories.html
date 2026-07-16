@@ -1,0 +1,50 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Manage Categories{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <h1><i class="fas fa-folder"></i> Categories</h1>
+    <a href="{% url 'dashboard:category_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Category</a>
+</div>
+
+<div style="margin-bottom:1.25rem;">
+    <form method="GET" action="{% url 'dashboard:categories' %}" style="display:flex; gap:0.75rem; align-items:center;">
+        <div style="position:relative; flex:1; max-width:400px;">
+            <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:0.85rem;"></i>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search categories..."
+                   class="form-control" style="padding-left:36px; width:100%;">
+        </div>
+        <button type="submit" class="btn btn-outline btn-sm"><i class="fas fa-search"></i> Search</button>
+        {% if query %}<a href="{% url 'dashboard:categories' %}" class="btn btn-outline btn-sm" style="color:#ff6584;"><i class="fas fa-times"></i> Clear</a>{% endif %}
+    </form>
+    {% if query %}<small style="color:var(--text-muted); margin-top:0.5rem; display:block;">Showing results for "<strong>{{ query }}</strong>" — {{ categories|length }} found</small>{% endif %}
+</div>
+
+<table class="dash-table">
+    <thead><tr><th>Icon</th><th>Name</th><th>Slug</th><th>Products</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for category in categories %}
+    <tr>
+        <td>
+            {% if category.image %}
+            <img src="{{ category.image.url }}" alt="{{ category.name }}" style="width:40px; height:40px; object-fit:cover; border-radius:8px">
+            {% else %}
+            <i class="{{ category.icon|default:'fas fa-box' }}" style="font-size:1.3rem; color:var(--primary)"></i>
+            {% endif %}
+        </td>
+        <td style="font-weight:600">{{ category.name }}</td>
+        <td style="color:var(--text-muted)">{{ category.slug }}</td>
+        <td>{{ category.product_count }}</td>
+        <td>
+            <div style="display:flex; gap:0.5rem">
+                <a href="{% url 'dashboard:category_edit' category.pk %}" class="btn btn-outline btn-sm"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'dashboard:category_delete' category.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+            </div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted)">No categories yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

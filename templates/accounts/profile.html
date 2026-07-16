@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Profile - {{ site_settings.store_name|default:"SoloStore" }}{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div class="profile-grid">
+    <div class="profile-sidebar">
+      <div class="profile-avatar" style="overflow:hidden;">
+        {% if user.profile.image %}
+          <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        {% else %}
+          {{ user.username|first|upper }}
+        {% endif %}
+      </div>
+      <h3>{{ user.get_full_name|default:user.username }}</h3>
+      <p style="color:var(--text-muted); font-size:0.85rem">{{ user.email }}</p>
+      <p style="color:var(--text-muted); font-size:0.8rem; margin-top:0.5rem">Member since {{ user.date_joined|date:"M Y" }}</p>
+      <nav class="profile-nav">
+        <a href="{% url 'accounts:profile' %}" class="active"><i class="fas fa-user"></i> Profile</a>
+        <a href="{% url 'orders:order_list' %}"><i class="fas fa-box"></i> My Orders</a>
+        {% if user.is_staff %}
+        <a href="{% url 'dashboard:home' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        {% endif %}
+        <a href="{% url 'accounts:logout' %}" style="color:var(--secondary)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </nav>
+    </div>
+
+    <div>
+      <!-- Profile Information Display Card -->
+      <div class="order-card" id="profile-display-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+          <h2 style="margin:0">Account Information</h2>
+          <button type="button" id="edit-profile-btn" class="btn btn-outline btn-sm">
+            <i class="fas fa-edit"></i> Edit Profile
+          </button>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem">
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">Username</div>
+            <div>{{ user.username }}</div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">Email Address</div>
+            <div>{{ user.email|default:"Not set" }}</div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">First Name</div>
+            <div>{{ user.first_name|default:"Not set" }}</div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">Last Name</div>
+            <div>{{ user.last_name|default:"Not set" }}</div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">Phone Number</div>
+            <div>{{ user.profile.phone|default:"Not set" }}</div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">City</div>
+            <div>{{ user.profile.city|default:"Not set" }}</div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">Country</div>
+            <div>{{ user.profile.country|default:"Not set" }}</div>
+          </div>
+        </div>
+        
+        <div style="margin-top:1.2rem">
+          <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.25rem">Address</div>
+          <div>{{ user.profile.address|default:"Not set" }}</div>
+        </div>
+      </div>
+
+      <!-- Profile Edit Form Card (Hidden by default) -->
+      <div class="order-card" id="profile-edit-card" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+          <h2 style="margin:0">Update Profile</h2>
+          <button type="button" id="cancel-edit-btn" class="btn btn-outline btn-sm" style="color:var(--secondary); border-color:var(--secondary);">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </div>
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem">
+            <div>
+              <label style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Username</label>
+              <input type="text" class="form-control" value="{{ user.username }}" disabled style="opacity:0.65; cursor:not-allowed;">
+            </div>
+            <div>
+              <label for="{{ user_form.email.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Email Address</label>
+              {{ user_form.email }}
+              {% if user_form.email.errors %}<div class="form-errors">{{ user_form.email.errors }}</div>{% endif %}
+            </div>
+            <div>
+              <label for="{{ user_form.first_name.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">First Name</label>
+              {{ user_form.first_name }}
+              {% if user_form.first_name.errors %}<div class="form-errors">{{ user_form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div>
+              <label for="{{ user_form.last_name.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Last Name</label>
+              {{ user_form.last_name }}
+              {% if user_form.last_name.errors %}<div class="form-errors">{{ user_form.last_name.errors }}</div>{% endif %}
+            </div>
+            <div>
+              <label for="{{ profile_form.phone.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Phone Number</label>
+              {{ profile_form.phone }}
+              {% if profile_form.phone.errors %}<div class="form-errors">{{ profile_form.phone.errors }}</div>{% endif %}
+            </div>
+            <div>
+              <label for="{{ profile_form.city.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">City</label>
+              {{ profile_form.city }}
+              {% if profile_form.city.errors %}<div class="form-errors">{{ profile_form.city.errors }}</div>{% endif %}
+            </div>
+            <div>
+              <label for="{{ profile_form.country.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Country</label>
+              {{ profile_form.country }}
+              {% if profile_form.country.errors %}<div class="form-errors">{{ profile_form.country.errors }}</div>{% endif %}
+            </div>
+            <div>
+              <label for="{{ profile_form.image.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Profile Picture</label>
+              {{ profile_form.image }}
+              {% if profile_form.image.errors %}<div class="form-errors">{{ profile_form.image.errors }}</div>{% endif %}
+            </div>
+          </div>
+          
+          <div style="margin-top:1.2rem">
+            <label for="{{ profile_form.address.id_for_label }}" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; margin-bottom:0.35rem; display:block;">Address</label>
+            {{ profile_form.address }}
+            {% if profile_form.address.errors %}<div class="form-errors">{{ profile_form.address.errors }}</div>{% endif %}
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="margin-top:1.5rem; width:100%; display:flex; align-items:center; justify-content:center; gap:0.5rem">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </form>
+      </div>
+
+
+      <div class="order-card" style="margin-top:1.5rem">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+          <h3>Recent Orders</h3>
+          <a href="{% url 'orders:order_list' %}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        {% with orders=user.orders.all|slice:":3" %}
+        {% if orders %}
+        {% for order in orders %}
+        <div class="summary-row">
+          <span>Order #{{ order.id }} <small style="color:var(--text-muted)">&middot; {{ order.created_at|date:"M d, Y" }}</small></span>
+          <div style="display:flex; gap:0.75rem; align-items:center">
+            <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+            <span style="color:var(--accent); font-weight:600">&#2547;{{ order.total_price }}</span>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="color:var(--text-muted); text-align:center; padding:1rem">No orders yet.</p>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const editBtn = document.getElementById('edit-profile-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const displayCard = document.getElementById('profile-display-card');
+    const editCard = document.getElementById('profile-edit-card');
+
+    if (editBtn && cancelBtn && displayCard && editCard) {
+      editBtn.addEventListener('click', function() {
+        displayCard.style.display = 'none';
+        editCard.style.display = 'block';
+      });
+
+      cancelBtn.addEventListener('click', function() {
+        editCard.style.display = 'none';
+        displayCard.style.display = 'block';
+      });
+    }
+  });
+</script>
+{% endblock %}
+

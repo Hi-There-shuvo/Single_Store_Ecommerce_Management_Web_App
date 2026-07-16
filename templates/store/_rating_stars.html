@@ -1,0 +1,15 @@
+{% with stars=product.get_rating_stars %}
+<div class="rating-display" {% if style_attr %}style="{{ style_attr }}"{% endif %}>
+  {% for i in stars.full %}<i class="fas fa-star text-warning"></i>{% endfor %}
+  {% for i in stars.half %}<i class="fas fa-star-half-alt text-warning"></i>{% endfor %}
+  {% for i in stars.empty %}<i class="far fa-star text-warning"></i>{% endfor %}
+  {% if show_value %}
+  <span class="rating-value" {% if value_style %}style="{{ value_style }}"{% endif %}>{{ stars.value }}{% if value_suffix %} {{ value_suffix }}{% endif %}</span>
+  {% endif %}
+  {% if show_count %}
+  <span class="rating-count" {% if count_style %}style="{{ count_style }}"{% endif %}>
+    ({% if show_label_prefix %}{{ product.reviews.count }} review{{ product.reviews.count|pluralize }}{% else %}{{ product.reviews.count }}{% endif %})
+  </span>
+  {% endif %}
+</div>
+{% endwith %}

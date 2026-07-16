@@ -1,0 +1,152 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}User Profile - {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <div>
+        <a href="{% url 'dashboard:users' %}" class="btn btn-outline btn-sm" style="margin-bottom: 1rem;"><i class="fas fa-arrow-left"></i> Back to Users</a>
+        <h1><i class="fas fa-user"></i> {{ user_obj.username }}'s Profile</h1>
+        <span style="color:var(--text-muted)">Manage accounts, status, and view entire purchase histories.</span>
+    </div>
+    
+    <!-- Action buttons (Disable/Enable and Delete) -->
+    <div style="display: flex; gap: 0.75rem;">
+        {% if user_obj != request.user %}
+            <form action="{% url 'dashboard:user_toggle_status' user_obj.pk %}" method="POST" style="display: inline;">
+                {% csrf_token %}
+                {% if user_obj.is_active %}
+                    <button type="submit" class="btn btn-outline" style="color: #ff6584; border-color: #ff6584;"><i class="fas fa-user-slash"></i> Disable Account</button>
+                {% else %}
+                    <button type="submit" class="btn btn-outline" style="color: var(--accent); border-color: var(--accent);"><i class="fas fa-user-check"></i> Activate Account</button>
+                {% endif %}
+            </form>
+            <a href="{% url 'dashboard:user_delete' user_obj.pk %}" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Delete User</a>
+        {% else %}
+            <span style="color: var(--text-muted); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> You cannot modify your own profile actions.</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-shopping-bag"></i></div>
+        <div>
+            <div class="stat-value">{{ user_orders|length }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+        <div>
+            <div class="stat-value">&#2547;{{ total_spent }}</div>
+            <div class="stat-label">Total Amount Spent</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+            <div class="stat-value" style="font-size: 1.15rem; font-weight: 700; margin-top: 5px;">{{ user_obj.date_joined|date:"d M Y, H:i" }}</div>
+            <div class="stat-label">Registration Date</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon {% if user_obj.is_active %}green{% else %}pink{% endif %}">
+            <i class="fas fa-{% if user_obj.is_active %}check-circle{% else %}times-circle{% endif %}"></i>
+        </div>
+        <div>
+            <div class="stat-value" style="font-size: 1.25rem;">
+                {% if user_obj.is_active %}Active{% else %}Disabled{% endif %}
+            </div>
+            <div class="stat-label">Account Status</div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Info Card -->
+<div class="dash-card" style="margin-bottom: 2rem;">
+    <h3><i class="fas fa-id-card"></i> Personal Profile Information</h3>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; box-shadow: var(--shadow);">
+            {% if user_obj.profile.image %}
+                <img src="{{ user_obj.profile.image.url }}" alt="{{ user_obj.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+                {{ user_obj.username|first|upper }}
+            {% endif %}
+        </div>
+        
+        <div style="flex: 1; min-width: 280px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <small style="color: var(--text-muted); display: block;">Full Name</small>
+                <strong>{{ user_obj.get_full_name|default:"Not Provided" }}</strong>
+            </div>
+            <div>
+                <small style="color: var(--text-muted); display: block;">Email Address</small>
+                <strong>{{ user_obj.email|default:"Not Provided" }}</strong>
+            </div>
+            <div>
+                <small style="color: var(--text-muted); display: block;">Phone Number</small>
+                <strong>{{ user_obj.profile.phone|default:"Not Provided" }}</strong>
+            </div>
+            <div>
+                <small style="color: var(--text-muted); display: block;">Billing / Shipping Address</small>
+                <strong>{{ user_obj.profile.address|default:"Not Provided" }}</strong>
+            </div>
+            <div>
+                <small style="color: var(--text-muted); display: block;">City</small>
+                <strong>{{ user_obj.profile.city|default:"Not Provided" }}</strong>
+            </div>
+            <div>
+                <small style="color: var(--text-muted); display: block;">Country</small>
+                <strong>{{ user_obj.profile.country|default:"Not Provided" }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase History Section -->
+<div class="dash-card">
+    <h3><i class="fas fa-history"></i> Purchase History (Orders List)</h3>
+    {% if user_orders %}
+    <table class="dash-table">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Order Items</th>
+                <th>Total Price</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Purchase Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in user_orders %}
+        <tr>
+            <td>
+                <a href="{% url 'dashboard:order_detail' order.pk %}" style="color: var(--primary); font-weight: 700;">#{{ order.id }}</a>
+            </td>
+            <td>
+                <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                    {% for item in order.items.all %}
+                        <li>{{ item.quantity }} x {{ item.product.name }} (&#2547;{{ item.price }})</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td style="font-weight: 600;">&#2547;{{ order.total_price }}</td>
+            <td>
+                {% if order.payment_method == 'online' %}
+                <span style="color:#635BFF"><i class="fab fa-stripe"></i> Online</span>
+                {% else %}
+                <span style="color:var(--accent)"><i class="fas fa-money-bill-wave"></i> COD</span>
+                {% endif %}
+            </td>
+            <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ order.created_at|date:"d M Y, H:i" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text-muted); text-align: center; padding: 2rem;">No purchases have been made by this user yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

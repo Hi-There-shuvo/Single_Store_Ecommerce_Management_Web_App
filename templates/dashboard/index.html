@@ -1,0 +1,88 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <h1><i class="fas fa-chart-pie"></i> Dashboard Overview</h1>
+    <span style="color:var(--text-muted)">Welcome, {{ request.user.username }}</span>
+</div>
+
+<div class="stat-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-tags"></i></div>
+        <div><div class="stat-value">{{ total_products }}</div><div class="stat-label">Total Products</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-folder"></i></div>
+        <div><div class="stat-value">{{ total_categories }}</div><div class="stat-label">Categories</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pink"><i class="fas fa-box"></i></div>
+        <div><div class="stat-value">{{ total_orders }}</div><div class="stat-label">Total Orders</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+        <div><div class="stat-value">&#2547;{{ net_revenue }}</div><div class="stat-label">Net Revenue</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red" style="color:var(--secondary); background:rgba(255,101,132,0.1)"><i class="fas fa-receipt"></i></div>
+        <div><div class="stat-value">&#2547;{{ net_expense }}</div><div class="stat-label">Net Expense</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon cyan" style="color:var(--accent); background:rgba(67,233,123,0.1)"><i class="fas fa-funnel-dollar"></i></div>
+        <div><div class="stat-value">&#2547;{{ net_profit }}</div><div class="stat-label">Net Profit</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon yellow" style="color:#ffc107; background:rgba(255,193,7,0.1)"><i class="fas fa-percentage"></i></div>
+        <div><div class="stat-value">{{ profit_margin }}%</div><div class="stat-label">Profit Margin</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon gold" style="color:#ffd700; background:rgba(255,215,0,0.1)"><i class="fas fa-crown"></i></div>
+        <div>
+            <div class="stat-value" style="font-size:0.95rem; line-height:1.2; font-weight:700; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                {% if most_sold_product %}{{ most_sold_product.name }}{% else %}No sales yet{% endif %}
+            </div>
+            <div class="stat-label">
+                {% if most_sold_product %}Most Sold ({{ most_sold_product.total_sold }} units){% else %}Most Sold Product{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if pending_orders > 0 %}
+<div class="alert alert-warning" style="margin-bottom:1.5rem">
+    <i class="fas fa-exclamation-triangle"></i>
+    You have <strong>{{ pending_orders }}</strong> pending order{{ pending_orders|pluralize }} that need attention!
+    <a href="{% url 'dashboard:orders' %}?status=pending" style="color:inherit; margin-left:0.5rem; font-weight:700">View &rarr;</a>
+</div>
+{% endif %}
+
+<div class="dash-card">
+    <h3><i class="fas fa-clock"></i> Recent Orders</h3>
+    {% if recent_orders %}
+    <table class="dash-table">
+        <thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for order in recent_orders %}
+        <tr>
+            <td><a href="{% url 'dashboard:order_detail' order.pk %}" style="color:var(--primary); font-weight:600">#{{ order.id }}</a></td>
+            <td>{{ order.first_name }} {{ order.last_name }}</td>
+            <td style="font-weight:600">&#2547;{{ order.total_price }}</td>
+            <td>
+                {% if order.payment_method == 'online' %}
+                <span style="color:#635BFF"><i class="fab fa-stripe"></i> Online</span>
+                {% else %}
+                <span style="color:var(--accent)"><i class="fas fa-money-bill-wave"></i> COD</span>
+                {% endif %}
+            </td>
+            <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+            <td style="color:var(--text-muted); font-size:0.85rem">{{ order.created_at|date:"d M Y, H:i" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text-muted)">No orders yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

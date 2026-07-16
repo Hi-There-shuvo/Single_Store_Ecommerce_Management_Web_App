@@ -1,0 +1,392 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - {{ site_settings.store_name|default:"SoloStore" }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        :root {
+            --sidebar-w: 260px;
+        }
+
+        .dash-wrap {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .dash-sidebar {
+            width: var(--sidebar-w);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .dash-sidebar .brand {
+            padding: 0 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dash-sidebar .brand i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .dash-sidebar .brand h2 {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .dash-sidebar .brand small {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .dash-sidebar .nav-section {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        .dash-sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .dash-sidebar a:hover,
+        .dash-sidebar a.active {
+            color: var(--primary);
+            background: rgba(108, 99, 255, 0.06);
+            border-left-color: var(--primary);
+        }
+
+        .dash-sidebar a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .dash-sidebar .back-link {
+            margin-top: auto;
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .dash-main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 2rem;
+            background: var(--bg);
+            min-height: 100vh;
+        }
+
+        .dash-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dash-header h1 {
+            font-size: 1.6rem;
+            margin: 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-icon.purple {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--primary);
+        }
+
+        .stat-icon.green {
+            background: rgba(67, 233, 123, 0.15);
+            color: var(--accent);
+        }
+
+        .stat-icon.pink {
+            background: rgba(255, 101, 132, 0.15);
+            color: #ff6584;
+        }
+
+        .stat-icon.blue {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .dash-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .dash-table th {
+            background: rgba(108, 99, 255, 0.06);
+            padding: 0.8rem 1rem;
+            text-align: left;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .dash-table td {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .dash-table tr {
+            transition: var(--transition);
+        }
+
+        .dash-table tr:hover {
+            background: rgba(108, 99, 255, 0.03);
+        }
+
+        .dash-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dash-card h3 {
+            margin: 0 0 1rem;
+            font-size: 1.1rem;
+        }
+
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+
+        .status-processing {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+        }
+
+        .status-shipped {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--primary);
+        }
+
+        .status-delivered {
+            background: rgba(67, 233, 123, 0.15);
+            color: var(--accent);
+        }
+
+        .status-cancelled {
+            background: rgba(255, 101, 132, 0.15);
+            color: #ff6584;
+        }
+
+        @media (max-width:768px) {
+            .dash-sidebar {
+                width: 60px;
+            }
+
+            .dash-sidebar .brand h2,
+            .dash-sidebar .brand small,
+            .dash-sidebar span,
+            .dash-sidebar .nav-section {
+                display: none;
+            }
+
+            .dash-sidebar a {
+                justify-content: center;
+                padding: 0.8rem;
+            }
+
+            .dash-main {
+                margin-left: 60px;
+                padding: 1rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="dash-wrap">
+        <aside class="dash-sidebar">
+            <div class="brand">
+                <i class="fas fa-store"></i>
+                <div>
+                    <h2>{{ site_settings.store_name|default:"SoloStore" }}</h2><small>Dashboard</small>
+                </div>
+            </div>
+            
+            <!-- Admin User Card -->
+            <div style="padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0;">
+                    {% if user.profile.image %}
+                        <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+                <div style="overflow: hidden;">
+                    <h4 style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.get_full_name|default:user.username }}</h4>
+                    <small style="display: block; font-size: 0.7rem; color: var(--text-muted);">Administrator</small>
+                </div>
+            </div>
+
+            <div class="nav-section">Main</div>
+            <a href="{% url 'dashboard:home' %}"
+                class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}"><i
+                    class="fas fa-chart-pie"></i> <span>Overview</span></a>
+            <a href="{% url 'dashboard:orders' %}"
+                class="{% if 'order' in request.resolver_match.url_name %}active{% endif %}"><i class="fas fa-box"></i>
+                <span>Orders</span></a>
+            <a href="{% url 'dashboard:users' %}"
+                class="{% if 'user' in request.resolver_match.url_name and request.resolver_match.url_name != 'profile' %}active{% endif %}"><i class="fas fa-users"></i>
+                <span>Users</span></a>
+            <div class="nav-section">Catalog</div>
+            <a href="{% url 'dashboard:products' %}"
+                class="{% if 'product' in request.resolver_match.url_name and request.resolver_match.url_name != 'low_stock' %}active{% endif %}"><i
+                    class="fas fa-tags"></i> <span>Products</span></a>
+            <a href="{% url 'dashboard:low_stock' %}"
+                class="{% if request.resolver_match.url_name == 'low_stock' %}active{% endif %}"><i
+                    class="fas fa-exclamation-triangle" {% if low_stock_count > 0 %}style="color:#ff6584;"{% endif %}></i>
+                <span>Low Stock</span>
+                {% if low_stock_count > 0 %}
+                <span style="background:#ff6584; color:white; border-radius:50px; padding:2px 8px; font-size:0.7rem; font-weight:700; margin-left:auto; line-height: 1.2;">{{ low_stock_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'dashboard:categories' %}"
+                class="{% if 'categor' in request.resolver_match.url_name %}active{% endif %}"><i
+                    class="fas fa-folder"></i> <span>Categories</span></a>
+            <a href="{% url 'dashboard:flash_sales' %}"
+                class="{% if 'flash' in request.resolver_match.url_name %}active{% endif %}"><i class="fas fa-bolt"></i>
+                <span>Flash Sales</span></a>
+            <a href="{% url 'dashboard:reviews' %}"
+                class="{% if 'review' in request.resolver_match.url_name %}active{% endif %}"><i
+                    class="fas fa-comment-dots"></i> <span>Reviews</span></a>
+            <div class="nav-section">Settings</div>
+            <a href="{% url 'dashboard:profile' %}"
+                class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><i
+                    class="fas fa-user-cog"></i> <span>My Profile</span></a>
+            <a href="{% url 'dashboard:settings' %}"
+                class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}"><i
+                    class="fas fa-cog"></i> <span>Store Settings</span></a>
+            <div class="back-link"><a href="{% url 'store:home' %}"><i class="fas fa-arrow-left"></i> <span>Back to
+                        Store</span></a></div>
+
+        </aside>
+        <main class="dash-main">
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i
+                        class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        document.body.addEventListener('showMessage', function (evt) {
+            let c = document.querySelector('.dash-main .messages-container');
+            if (!c) { c = document.createElement('div'); c.className = 'messages-container'; document.querySelector('.dash-main').prepend(c); }
+            const d = document.createElement('div'); d.className = 'alert alert-success';
+            d.innerHTML = '<i class="fas fa-check-circle"></i> ' + evt.detail.value + '<button class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
+            c.appendChild(d);
+            setTimeout(() => { d.style.opacity = '0'; d.style.transform = 'translateX(20px)'; d.style.transition = 'all 0.4s ease'; setTimeout(() => d.remove(), 400); }, 3000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

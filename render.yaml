@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: single-store-ecommerce
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn single_store_ecommerce.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true          # Render auto-generates a secure key
+      - key: DEBUG
+        value: False
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      # The following must be set manually in Render Dashboard:
+      # DATABASE_URL        ← from Neon
+      # CLOUDINARY_CLOUD_NAME
+      # CLOUDINARY_API_KEY
+      # CLOUDINARY_API_SECRET
+      # STRIPE_PUBLISHABLE_KEY
+      # STRIPE_SECRET_KEY
+      # ALLOWED_HOSTS       ← your-app.onrender.com

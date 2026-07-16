@@ -1,0 +1,58 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Manage Orders{% endblock %}
+
+{% block content %}
+<div class="dash-header">
+    <h1><i class="fas fa-box"></i> Orders</h1>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+        <a href="{% url 'dashboard:orders' %}" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %} btn-sm">All</a>
+        {% for value, label in status_choices %}
+        <a href="{% url 'dashboard:orders' %}?status={{ value }}" class="btn {% if status_filter == value %}btn-primary{% else %}btn-outline{% endif %} btn-sm">{{ label }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="margin-bottom:1.25rem;">
+    <form method="GET" action="{% url 'dashboard:orders' %}" style="display:flex; gap:0.75rem; align-items:center;">
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+        <div style="position:relative; flex:1; max-width:400px;">
+            <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:0.85rem;"></i>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by order #, customer name, email..."
+                   class="form-control" style="padding-left:36px; width:100%;">
+        </div>
+        <button type="submit" class="btn btn-outline btn-sm"><i class="fas fa-search"></i> Search</button>
+        {% if query %}<a href="{% url 'dashboard:orders' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="btn btn-outline btn-sm" style="color:#ff6584;"><i class="fas fa-times"></i> Clear</a>{% endif %}
+    </form>
+    {% if query %}<small style="color:var(--text-muted); margin-top:0.5rem; display:block;">Showing results for "<strong>{{ query }}</strong>" — {{ orders|length }} found</small>{% endif %}
+</div>
+
+<table class="dash-table">
+    <thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for order in orders %}
+    <tr>
+        <td><a href="{% url 'dashboard:order_detail' order.pk %}" style="color:var(--primary); font-weight:700">#{{ order.id }}</a></td>
+        <td>
+            <div style="font-weight:600">{{ order.first_name }} {{ order.last_name }}</div>
+            <small style="color:var(--text-muted)">{{ order.email }}</small>
+        </td>
+        <td>{{ order.items.count }} items</td>
+        <td style="font-weight:700">&#2547;{{ order.total_price }}</td>
+        <td>
+            {% if order.payment_method == 'online' %}
+            <span style="color:#635BFF"><i class="fab fa-stripe"></i> Online</span>
+            {% else %}
+            <span style="color:var(--accent)"><i class="fas fa-money-bill-wave"></i> COD</span>
+            {% endif %}
+            {% if order.paid %}<i class="fas fa-check-circle" style="color:var(--accent); margin-left:4px" title="Paid"></i>{% endif %}
+        </td>
+        <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+        <td style="color:var(--text-muted); font-size:0.85rem">{{ order.created_at|date:"d M Y" }}</td>
+        <td><a href="{% url 'dashboard:order_detail' order.pk %}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted)">No orders found.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% block title %}{{ site_settings.store_name|default:"SoloStore" }} - Home{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+  <!-- Animated background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="hero-content">
+    <h1>Shop Smarter,<br><span>Live Better</span></h1>
+    <p>{{ site_settings.banner_subtitle|default:"Discover thousands of quality products — delivered fast, priced right."}}</p>
+    <div class="hero-btns">
+      <a href="{% url 'store:product_list' %}" class="btn btn-primary"><i class="fas fa-shopping-bag"></i> Shop Now</a>
+      <a href="#categories" class="btn btn-outline"><i class="fas fa-th"></i> Explore Categories</a>
+    </div>
+
+    <!-- Hero Stats Row -->
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-value">15K+</div>
+        <div class="stat-label">Happy Clients</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">Free</div>
+        <div class="stat-label">Shipping</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">Expert Support</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Secure Pay</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Flash Sale Banner -->
+{% if flash_sale %}
+<section class="flash-sale-section" style="--sale-color: {{ flash_sale.banner_color }}">
+  <div class="flash-sale-container">
+    <div class="flash-sale-header">
+      <div class="flash-sale-title">
+        <i class="fas fa-bolt"></i>
+        <h2>{{ flash_sale.title }}</h2>
+        <span class="flash-sale-badge">{{ flash_sale.discount_percentage }}% OFF</span>
+      </div>
+      {% if flash_sale.description %}
+      <p class="flash-sale-desc">{{ flash_sale.description }}</p>
+      {% endif %}
+      <div class="countdown" id="flash-countdown" data-end="{{ flash_sale.end_date|date:'c' }}">
+        <div class="countdown-item">
+          <span class="countdown-value" id="cd-days">00</span>
+          <span class="countdown-label">Days</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-value" id="cd-hours">00</span>
+          <span class="countdown-label">Hours</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-value" id="cd-minutes">00</span>
+          <span class="countdown-label">Mins</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-value" id="cd-seconds">00</span>
+          <span class="countdown-label">Secs</span>
+        </div>
+      </div>
+    </div>
+    {% if flash_sale_products %}
+    <div class="products-grid">
+      {% for product in flash_sale_products %}
+      {% include 'store/_product_card.html' with is_flash=True %}
+      {% endfor %}
+    </div>
+    <div style="text-align:center; margin-top:2rem;">
+      <a href="{% url 'store:product_list' %}?sale=1" class="btn btn-primary"><i class="fas fa-fire"></i> View All
+        Deals</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Categories -->
+<div class="section" id="categories">
+  <div class="section-header">
+    <h2 class="section-title">Shop by Category</h2>
+  </div>
+  {% if categories %}
+  <div class="categories-grid">
+    {% for cat in categories %}
+    <a href="{% url 'store:product_list' %}?category={{ cat.slug }}" class="category-card">
+      <div class="category-icon">
+        {% if cat.image %}
+        <img src="{{ cat.image.url }}" alt="{{ cat.name }}"
+          style="width:100%; height:100%; object-fit:cover; border-radius:inherit">
+        {% else %}
+        <i class="{{ cat.icon|default:'fas fa-box' }}"></i>
+        {% endif %}
+      </div>
+      <div class="category-name">{{ cat.name }}</div>
+      <div class="category-count">{{ cat.products.count }} product{{ cat.products.count|pluralize }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted); text-align:center; padding:2rem;">No categories yet. Add some from the admin panel.
+  </p>
+  {% endif %}
+</div>
+
+<!-- Why Choose Us / Value Proposition Section -->
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">Why Shop With Us</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-shipping-fast"></i></div>
+      <h3 class="feature-title">Express Delivery</h3>
+      <p class="feature-desc">Get your items shipped directly to your door with real-time tracking updates.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+      <h3 class="feature-title">Secure Payments</h3>
+      <p class="feature-desc">All transactions are secured with industry-leading encryption protocols.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-undo-alt"></i></div>
+      <h3 class="feature-title">Easy Returns</h3>
+      <p class="feature-desc">Not fully satisfied? Send it back within 30 days for a hassle-free refund.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-award"></i></div>
+      <h3 class="feature-title">Premium Quality</h3>
+      <p class="feature-desc">Our products undergo strict quality assurance to guarantee excellence.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Products -->
+{% if featured_products %}
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">Featured Products</h2>
+    <a href="{% url 'store:product_list' %}" class="btn btn-outline btn-sm">View All</a>
+  </div>
+  <div class="products-grid">
+    {% for product in featured_products %}
+    {% include 'store/_product_card.html' %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Latest Products -->
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">Latest Arrivals</h2>
+    <a href="{% url 'store:product_list' %}" class="btn btn-outline btn-sm">View All</a>
+  </div>
+  {% if latest_products %}
+  <div class="products-grid">
+    {% for product in latest_products %}
+    {% include 'store/_product_card.html' %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted); text-align:center; padding:3rem;">No products yet. Add some from the <a
+      href="{% url 'admin:index' %}" style="color:var(--primary)">admin panel</a>.</p>
+  {% endif %}
+</div>
+
+<!-- Customer Testimonials Section -->
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">What Our Customers Say</h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <i class="fas fa-quote-right quote-icon"></i>
+      <div class="rating">
+        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+          class="fas fa-star"></i>
+      </div>
+      <p class="testimonial-text">"Amazing quality! The shipping was lightning fast, and the customer support team
+        helped me select the perfect product."</p>
+      <div class="user-info">
+        <div class="user-avatar"
+          style="background:var(--primary); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size: 0.9rem;">
+          JD</div>
+        <div class="user-details">
+          <h5>Shuvo Mia</h5>
+          <span>Verified Buyer</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <i class="fas fa-quote-right quote-icon"></i>
+      <div class="rating">
+        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+          class="fas fa-star"></i>
+      </div>
+      <p class="testimonial-text">"I'm extremely impressed by the return policy and secure payment methods. The book
+        collection is curated and absolutely stellar."</p>
+      <div class="user-info">
+        <div class="user-avatar"
+          style="background:var(--secondary); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size: 0.9rem;">
+          SS</div>
+        <div class="user-details">
+          <h5>Maliha</h5>
+          <span>Tech Enthusiast</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <i class="fas fa-quote-right quote-icon"></i>
+      <div class="rating">
+        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+          class="fas fa-star-half-alt"></i>
+      </div>
+      <p class="testimonial-text">"SoloStore has become my absolute go-to for daily household electronics. The flash sale
+        deals are unbeatable!"</p>
+      <div class="user-info">
+        <div class="user-avatar"
+          style="background:var(--accent); display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold; font-size: 0.9rem;">
+          MA</div>
+        <div class="user-details">
+          <h5>Michael Olise</h5>
+          <span>Loyal Customer</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Newsletter Subscription Section -->
+<section class="newsletter-section">
+  <div class="newsletter-content">
+    <h2>Join the Hub Newsletter</h2>
+    <p>Subscribe to receive notifications about exclusive sales, restocks, and weekly special deals directly in your
+      inbox.</p>
+    <div id="newsletter-response">
+      <form class="newsletter-form" hx-post="{% url 'store:subscribe_newsletter' %}" hx-target="#newsletter-response"
+        hx-swap="outerHTML">
+        {% csrf_token %}
+        <input type="email" name="email" placeholder="Your email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

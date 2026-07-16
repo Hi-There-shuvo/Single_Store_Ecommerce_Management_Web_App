@@ -1,0 +1,65 @@
+# =====================
+# Python
+# =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# =====================
+# Virtual Environment
+# =====================
+venv/
+.venv/
+env/
+ENV/
+
+# =====================
+# Django
+# =====================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Media uploads (served via Cloudinary in production)
+media/
+
+# Collected static files
+staticfiles/
+
+# =====================
+# Secrets
+# =====================
+.env
+.env.local
+.env.production
+
+# =====================
+# IDE / OS
+# =====================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# =====================
+# Render build cache
+# =====================
+.cache/

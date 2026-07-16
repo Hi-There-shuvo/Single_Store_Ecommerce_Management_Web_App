@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}Register - {{ site_settings.store_name|default:"SoloStore" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-page {
+    display:flex; align-items:center; justify-content:center; min-height:80vh;
+    padding:2rem 1rem; position:relative;
+  }
+  .auth-page::before {
+    content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(108,99,255,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(255,101,132,0.06) 0%, transparent 50%);
+    animation: authBgShift 15s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+  @keyframes authBgShift {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-5%, 3%) rotate(3deg); }
+  }
+  .auth-card {
+    background: rgba(26,26,46,0.85); backdrop-filter: blur(24px);
+    border: 1px solid rgba(108,99,255,0.15); border-radius:20px;
+    padding:2.5rem; max-width:480px; width:100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 80px rgba(108,99,255,0.05);
+    position:relative; z-index:1;
+    animation: cardFadeIn 0.5s ease-out;
+  }
+  @keyframes cardFadeIn {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .auth-card .auth-header { text-align:center; margin-bottom:2rem; }
+  .auth-card .auth-icon {
+    width:64px; height:64px; border-radius:16px; margin:0 auto 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem; color:#fff;
+  }
+  .auth-card h2 { font-size:1.5rem; font-weight:700; margin-bottom:0.3rem; }
+  .auth-card .auth-sub { color:var(--text-muted); font-size:0.9rem; }
+  .auth-card .form-group { margin-bottom:1.1rem; }
+  .auth-card .form-group label {
+    display:block; font-size:0.8rem; font-weight:600;
+    color:var(--text-muted); margin-bottom:0.35rem;
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .auth-card .form-control {
+    width:100%; padding:0.8rem 1rem; background:rgba(15,15,26,0.6);
+    border:1px solid rgba(108,99,255,0.15); border-radius:12px;
+    color:var(--text); font-size:0.95rem; font-family:inherit; outline:none;
+    transition:all 0.3s ease;
+  }
+  .auth-card .form-control:focus {
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(108,99,255,0.15), 0 0 20px rgba(108,99,255,0.05);
+    background:rgba(15,15,26,0.8);
+  }
+  .auth-card .form-errors { font-size:0.8rem; color:var(--secondary); margin-top:0.3rem; }
+  .auth-card .auth-btn {
+    width:100%; padding:0.85rem; border:none; border-radius:12px;
+    background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color:#fff; font-size:1rem; font-weight:600; cursor:pointer;
+    transition:all 0.3s ease; display:flex; align-items:center;
+    justify-content:center; gap:0.5rem; margin-top:1.2rem;
+  }
+  .auth-card .auth-btn:hover {
+    transform:translateY(-2px);
+    box-shadow:0 8px 25px rgba(108,99,255,0.4);
+  }
+  .auth-card .auth-footer {
+    text-align:center; padding-top:1.5rem; margin-top:1.5rem;
+    border-top:1px solid rgba(108,99,255,0.1);
+    color:var(--text-muted); font-size:0.9rem;
+  }
+  .auth-card .auth-footer a { color:var(--primary); font-weight:600; }
+  .auth-card .auth-footer a:hover { text-decoration:underline; }
+  .name-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .password-wrapper .form-control {
+    padding-right: 3rem;
+  }
+  .toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+  }
+  .toggle-password:hover {
+    color: var(--primary);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-icon"><i class="fas fa-user-plus"></i></div>
+      <h2>Create Account</h2>
+      <p class="auth-sub">Join {{ site_settings.store_name|default:"SoloStore" }} and start shopping</p>
+    </div>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="name-row">
+        <div class="form-group">
+          <label for="id_first_name">First Name</label>
+          <input type="text" name="first_name" id="id_first_name" class="form-control"
+                 placeholder="John" value="{{ form.first_name.value|default:'' }}" required>
+          {% if form.first_name.errors %}<div class="form-errors">{{ form.first_name.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label for="id_last_name">Last Name</label>
+          <input type="text" name="last_name" id="id_last_name" class="form-control"
+                 placeholder="Doe" value="{{ form.last_name.value|default:'' }}" required>
+          {% if form.last_name.errors %}<div class="form-errors">{{ form.last_name.errors }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" class="form-control"
+               placeholder="Choose a username" value="{{ form.username.value|default:'' }}" required>
+        {% if form.username.errors %}<div class="form-errors">{{ form.username.errors }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_email">Email</label>
+        <input type="email" name="email" id="id_email" class="form-control"
+               placeholder="you@example.com" value="{{ form.email.value|default:'' }}" required>
+        {% if form.email.errors %}<div class="form-errors">{{ form.email.errors }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_password1">Password</label>
+        <div class="password-wrapper">
+          <input type="password" name="password1" id="id_password1" class="form-control"
+                 placeholder="Create a password" required>
+          <button type="button" class="toggle-password" data-target="#id_password1" aria-label="Toggle password visibility">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        {% if form.password1.errors %}<div class="form-errors">{{ form.password1.errors }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_password2">Confirm Password</label>
+        <div class="password-wrapper">
+          <input type="password" name="password2" id="id_password2" class="form-control"
+                 placeholder="Confirm your password" required>
+          <button type="button" class="toggle-password" data-target="#id_password2" aria-label="Toggle password visibility">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        {% if form.password2.errors %}<div class="form-errors">{{ form.password2.errors }}</div>{% endif %}
+      </div>
+      <button type="submit" class="auth-btn"><i class="fas fa-user-plus"></i> Create Account</button>
+    </form>
+    <div class="auth-footer">Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const targetSelector = this.getAttribute('data-target');
+        const passwordInput = document.querySelector(targetSelector);
+        if (passwordInput) {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          const icon = this.querySelector('i');
+          if (type === 'password') {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+          } else {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+          }
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

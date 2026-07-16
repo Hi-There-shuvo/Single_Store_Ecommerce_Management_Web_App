@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Products - {{ site_settings.store_name|default:"SoloStore" }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1>{% if category %}{{ category.name }}{% elif query %}Results for "{{ query }}"{% else %}All Products{% endif %}</h1>
+    <nav class="breadcrumb">
+      <a href="{% url 'store:home' %}">Home</a> /
+      {% if category %}<span>{{ category.name }}</span>{% else %}<span>Products</span>{% endif %}
+    </nav>
+  </div>
+</div>
+
+<div class="section">
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <strong style="font-size:0.85rem; color:var(--text-muted)">Category:</strong>
+    <a href="{% url 'store:product_list' %}" class="{% if not category %}active{% endif %}">All</a>
+    {% for cat in categories %}
+    <a href="{% url 'store:product_list' %}?category={{ cat.slug }}" class="{% if category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+    <span style="margin-left:auto"></span>
+    <a href="{% url 'store:product_list' %}?sale=1" class="{% if request.GET.sale %}active{% endif %}" style="border-color:var(--secondary); color:var(--secondary)">
+      <i class="fas fa-bolt"></i> On Sale
+    </a>
+  </div>
+
+  {% if products %}
+  <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">{{ products|length }} product{{ products|length|pluralize }} found</p>
+  <div class="products-grid">
+    {% for product in products %}
+    {% include 'store/_product_card.html' %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:4rem; color:var(--text-muted)">
+    <i class="fas fa-search" style="font-size:3rem; margin-bottom:1rem; display:block"></i>
+    <p>No products found. Try a different search or category.</p>
+    <a href="{% url 'store:product_list' %}" class="btn btn-outline" style="margin-top:1rem">Clear Filter</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
